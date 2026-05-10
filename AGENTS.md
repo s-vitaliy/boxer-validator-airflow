@@ -2,30 +2,16 @@
 
 ## 🗂️ Code Organization for Rust components (Expected)
 
-The agent should respect and work within this structure:
+The agent should respect and work within this structure (abstract example):
 
 ```
 model/
-config.rs // hyperparameters
-weights.rs // strongly typed weights
-model.rs // forward_step()
+model.rs
 
-runtime/
-kv_cache.rs
-state.rs
-session.rs // autoregressive loop
+services/
+service_implementation.rs
+dependency_trait_definitions.rs
 
-math/
-matmul.rs
-softmax.rs
-rmsnorm.rs
-rope.rs
-
-tokenizer/
-simple.rs // minimal or stub tokenizer
-
-io/
-npy_loader.rs // load real weights from PyTorch exports
 ```
 
 ### Module Organization Principles
