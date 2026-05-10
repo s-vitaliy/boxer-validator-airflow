@@ -14,11 +14,10 @@ class BoxerAuthManager(BaseAuthManager[BoxerUser]):
         self.boxer = boxer or Boxer()
 
     def serialize_user(self, user: BoxerUser) -> dict[str, Any]:
-        return self.boxer.serialize_user(user_id=user.get_id(), name=user.get_name())
+        return self.boxer.serialize_user(user)
 
     def deserialize_user(self, token: dict[str, Any]) -> BoxerUser:
-        user = self.boxer.deserialize_user(token)
-        return BoxerUser(user_id=user["id"], name=user["name"])
+        return BoxerUser.deserialize_user(token)
 
     def get_url_login(self, **kwargs: Any) -> str:
         return self.boxer.get_url_login(**kwargs)
@@ -26,7 +25,9 @@ class BoxerAuthManager(BaseAuthManager[BoxerUser]):
     def filter_authorized_menu_items(
         self, menu_items: list[Any], *, user: BoxerUser
     ) -> list[Any]:
-        return self.boxer.filter_authorized_menu_items(menu_items, user_id=user.get_id())
+        return self.boxer.filter_authorized_menu_items(
+            menu_items, user_id=user.get_id()
+        )
 
     def is_authorized_asset(
         self, *, method: str, user: BoxerUser, details: Any | None = None

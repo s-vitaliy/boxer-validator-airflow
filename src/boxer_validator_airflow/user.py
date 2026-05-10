@@ -1,17 +1,24 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from typing import Any
 
 from airflow.api_fastapi.auth.managers.models.base_user import BaseUser
 
+from boxer_validator_airflow import _core
 
-@dataclass(frozen=True)
+
 class BoxerUser(BaseUser):
-    user_id: str
-    name: str
+    @staticmethod
+    def deserialize_user(token: dict[str, Any]) -> BoxerUser:
+        user = object.__new__(BoxerUser)
+        user._inner = _core.BoxerPrincipal.deserialize_user(token)
+        return user
+
+    def serialize_user(self) -> dict[str, str]:
+        return self._inner.serialize_user()
 
     def get_id(self) -> str:
-        return self.user_id
+        return self._inner.get_id()
 
     def get_name(self) -> str:
-        return self.name
+        return self._inner.get_name()

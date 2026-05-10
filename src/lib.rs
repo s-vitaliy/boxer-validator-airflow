@@ -4,23 +4,42 @@ use pyo3::types::PyDict;
 use pyo3::wrap_pyfunction;
 use std::collections::HashMap;
 
-#[pyfunction]
-fn serialize_user(user_id: String, name: String) -> HashMap<String, String> {
-    HashMap::from([("id".to_string(), user_id), ("name".to_string(), name)])
+#[pyclass]
+struct BoxerPrincipal {
+    user_id: String,
+    name: String,
 }
 
-#[pyfunction]
-fn deserialize_user(token: &Bound<'_, PyDict>) -> PyResult<(String, String)> {
-    let user_id = token
-        .get_item("id")?
-        .ok_or_else(|| PyKeyError::new_err("id"))?
-        .extract()?;
-    let name = token
-        .get_item("name")?
-        .ok_or_else(|| PyKeyError::new_err("name"))?
-        .extract()?;
+#[pymethods]
+impl BoxerPrincipal {
+    fn get_id(&self) -> &str {
+        self.user_id.as_str()
+    }
 
-    Ok((user_id, name))
+    fn get_name(&self) -> &str {
+        self.name.as_str()
+    }
+
+    fn serialize_user(&self) -> HashMap<String, String> {
+        HashMap::from([
+            ("id".to_string(), self.user_id.clone()),
+            ("name".to_string(), self.name.clone()),
+        ])
+    }
+
+    #[staticmethod]
+    fn deserialize_user(token: &Bound<'_, PyDict>) -> PyResult<Self> {
+        let user_id = token
+            .get_item("id")?
+            .ok_or_else(|| PyKeyError::new_err("id"))?
+            .extract()?;
+        let name = token
+            .get_item("name")?
+            .ok_or_else(|| PyKeyError::new_err("name"))?
+            .extract()?;
+
+        Ok(Self { user_id, name })
+    }
 }
 
 #[pyfunction]
@@ -97,8 +116,7 @@ fn is_authorized_view(_access_view: Py<PyAny>, _user_id: String) -> bool {
 
 #[pymodule]
 fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(serialize_user, m)?)?;
-    m.add_function(wrap_pyfunction!(deserialize_user, m)?)?;
+    m.add_class::<BoxerPrincipal>()?;
     m.add_function(wrap_pyfunction!(get_url_login, m)?)?;
     m.add_function(wrap_pyfunction!(filter_authorized_menu_items, m)?)?;
     m.add_function(wrap_pyfunction!(is_authorized_asset, m)?)?;
@@ -115,11 +133,15 @@ fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
 #[cfg(test)]
 mod tests {
-    use super::serialize_user;
+    use super::BoxerPrincipal;
 
     #[test]
     fn serializes_user() {
-        let user = serialize_user("u1".to_string(), "User One".to_string());
+        let user = BoxerPrincipal {
+            user_id: "u1".to_string(),
+            name: "User One".to_string(),
+        }
+        .serialize_user();
 
         assert_eq!(user.get("id").map(String::as_str), Some("u1"));
         assert_eq!(user.get("name").map(String::as_str), Some("User One"));

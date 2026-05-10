@@ -6,12 +6,11 @@ from boxer_validator_airflow import _core
 
 
 class Boxer:
-    def serialize_user(self, *, user_id: str, name: str) -> dict[str, str]:
-        return _core.serialize_user(user_id, name)
+    def serialize_user(self, user: Any) -> dict[str, str]:
+        return user.serialize_user()
 
-    def deserialize_user(self, token: dict[str, Any]) -> dict[str, str]:
-        user_id, name = _core.deserialize_user(token)
-        return {"id": user_id, "name": name}
+    def deserialize_user(self, token: dict[str, Any]) -> Any:
+        return _core.BoxerPrincipal.deserialize_user(token)
 
     def get_url_login(self, **kwargs: Any) -> str:
         return _core.get_url_login(kwargs)
