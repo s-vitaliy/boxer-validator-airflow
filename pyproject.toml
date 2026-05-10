@@ -7,6 +7,11 @@ dependencies = [
     "apache-airflow-core",
 ]
 
+[dependency-groups]
+dev = [
+    "pytest",
+]
+
 [tool.maturin]
 module-name = "boxer_validator_airflow._core"
 python-packages = ["boxer_validator_airflow"]
