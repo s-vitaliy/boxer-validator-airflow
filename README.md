@@ -6,5 +6,5 @@ Rust library with a Python wrapper built via `uv` and `maturin`.
 
 ```bash
 uv sync
-uv run python -c "import boxer_validator_airflow; print(boxer_validator_airflow.hello())"
+uv run python -c "from boxer_validator_airflow import BoxerAuthManager; print(BoxerAuthManager.__name__)"
 ```
