@@ -4,42 +4,63 @@ use pyo3::types::PyDict;
 use pyo3::wrap_pyfunction;
 use std::collections::HashMap;
 
+const PRINCIPAL_KEY: &str = "boxer.sneaksanddata.com/principal";
+const USER_ID_KEY: &str = "boxer.sneaksanddata.com/external-identity";
+const IDENTITY_PROVIDER_KEY: &str = "boxer.sneaksanddata.com/identity-provider";
+
 #[pyclass]
 struct BoxerPrincipal {
-    user_id: String,
-    name: String,
+    principal: String,
+    external_identity: String,
+    identity_provider: String,
 }
 
 #[pymethods]
 impl BoxerPrincipal {
-    fn get_id(&self) -> &str {
-        self.user_id.as_str()
+    fn get_id(&self) -> String {
+        self.boxer_user_id()
     }
 
-    fn get_name(&self) -> &str {
-        self.name.as_str()
+    fn get_name(&self) -> String {
+        self.boxer_user_id()
     }
 
     fn serialize_user(&self) -> HashMap<String, String> {
         HashMap::from([
-            ("id".to_string(), self.user_id.clone()),
-            ("name".to_string(), self.name.clone()),
+            (PRINCIPAL_KEY.to_string(), self.principal.clone()),
+            (USER_ID_KEY.to_string(), self.external_identity.clone()),
+            (
+                IDENTITY_PROVIDER_KEY.to_string(),
+                self.identity_provider.clone(),
+            ),
         ])
     }
 
     #[staticmethod]
     fn deserialize_user(token: &Bound<'_, PyDict>) -> PyResult<Self> {
-        let user_id = token
-            .get_item("id")?
-            .ok_or_else(|| PyKeyError::new_err("id"))?
-            .extract()?;
-        let name = token
-            .get_item("name")?
-            .ok_or_else(|| PyKeyError::new_err("name"))?
-            .extract()?;
+        let principal = required_claim(token, PRINCIPAL_KEY)?;
+        let external_identity = required_claim(token, USER_ID_KEY)?;
+        let identity_provider = required_claim(token, IDENTITY_PROVIDER_KEY)?;
 
-        Ok(Self { user_id, name })
+        Ok(Self {
+            principal,
+            external_identity,
+            identity_provider,
+        })
     }
+}
+
+impl BoxerPrincipal {
+    fn boxer_user_id(&self) -> String {
+        format!("{}/{}", self.identity_provider, self.external_identity)
+    }
+}
+
+fn required_claim(token: &Bound<'_, PyDict>, key: &'static str) -> PyResult<String> {
+    token
+        .get_item(key)?
+        .ok_or_else(|| PyKeyError::new_err(key))?
+        .extract()
 }
 
 #[pyfunction]
@@ -138,12 +159,37 @@ mod tests {
     #[test]
     fn serializes_user() {
         let user = BoxerPrincipal {
-            user_id: "u1".to_string(),
-            name: "User One".to_string(),
+            principal: "principal-1".to_string(),
+            external_identity: "u1".to_string(),
+            identity_provider: "idp".to_string(),
         }
         .serialize_user();
 
-        assert_eq!(user.get("id").map(String::as_str), Some("u1"));
-        assert_eq!(user.get("name").map(String::as_str), Some("User One"));
+        assert_eq!(
+            user.get("boxer.sneaksanddata.com/principal")
+                .map(String::as_str),
+            Some("principal-1")
+        );
+        assert_eq!(
+            user.get("boxer.sneaksanddata.com/external-identity")
+                .map(String::as_str),
+            Some("u1")
+        );
+        assert_eq!(
+            user.get("boxer.sneaksanddata.com/identity-provider")
+                .map(String::as_str),
+            Some("idp")
+        );
+    }
+
+    #[test]
+    fn formats_user_id_from_identity_provider_and_external_identity() {
+        let user = BoxerPrincipal {
+            principal: "principal-1".to_string(),
+            external_identity: "u1".to_string(),
+            identity_provider: "idp".to_string(),
+        };
+
+        assert_eq!(user.boxer_user_id(), "idp/u1");
     }
 }
