@@ -3,7 +3,9 @@ name = "boxer-validator-airflow"
 version = "0.1.0"
 description = "Rust library with a Python wrapper managed by uv"
 requires-python = ">=3.9"
-dependencies = []
+dependencies = [
+    "apache-airflow-core",
+]
 
 [tool.maturin]
 module-name = "boxer_validator_airflow._core"
