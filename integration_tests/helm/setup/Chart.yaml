@@ -1,0 +1,13 @@
+apiVersion: v2
+name: setup
+description: Integration test setup chart
+type: application
+version: 0.1.0
+
+dependencies:
+  - name: boxer-crd
+    repository: oci://ghcr.io/sneaksanddata/helm
+    version: v0.0.5
+  - name: boxer-issuer
+    repository: oci://ghcr.io/sneaksanddata/helm
+    version: v0.0.14
