@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use boxer_core::services::backends::kubernetes::kubernetes_repository::KubernetesRepository;
 use boxer_core::services::backends::kubernetes::kubernetes_repository::to_resource::ToResource;
 use boxer_core::services::backends::kubernetes::kubernetes_repository::try_from_resource::TryFromResource;

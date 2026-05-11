@@ -443,14 +443,18 @@ dependencies = [
 name = "boxer_validator_airflow"
 version = "0.1.0"
 dependencies = [
+ "assert_matches",
  "boxer_core",
  "cedar-policy",
  "k8s-openapi",
  "kube",
+ "maplit",
  "pyo3",
  "schemars 0.8.22",
  "serde",
  "serde_json",
+ "test-context",
+ "tokio",
 ]
 
 [[package]]
