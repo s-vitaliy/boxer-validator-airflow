@@ -1,5 +1,6 @@
 mod api;
 mod models;
+mod repositories;
 mod services;
 
 use pyo3::prelude::*;
