@@ -54,3 +54,5 @@ ENV/
 
 # Test dependencies
 integration_tests/helm/setup/charts/*
+integration_tests/terraform/keycloak/terraform.tfstate.backup
+integration_tests/terraform/keycloak/.terraform/providers/registry.opentofu.org/keycloak/keycloak/5.0.0/
