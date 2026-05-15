@@ -1,10 +1,16 @@
-use cedar_policy::EntityUid;
+use cedar_policy::{Authorizer, Context, Decision, Entities, EntityUid, PolicySet, Request};
 
-pub struct Boxer;
+pub struct Boxer {
+    policies: PolicySet,
+    authorizer: Authorizer,
+}
 
 impl Boxer {
-    pub fn new() -> Self {
-        Self
+    pub fn new(policies: PolicySet) -> Self {
+        Self {
+            policies,
+            authorizer: Authorizer::new(),
+        }
     }
 
     pub fn get_url_login(&self) -> String {
@@ -15,7 +21,12 @@ impl Boxer {
         Vec::new()
     }
 
-    pub fn is_authorized(&self, _action: EntityUid, _user: EntityUid, _resource: EntityUid) -> bool {
-        false
+    pub fn is_authorized(&self, principal: EntityUid, action: EntityUid, resource: EntityUid) -> bool {
+        let Ok(request) = Request::new(principal, action, resource, Context::empty(), None) else {
+            return false;
+        };
+        self.authorizer
+            .is_authorized(&request, &self.policies, &Entities::empty())
+            .decision() == Decision::Allow
     }
 }

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::str::FromStr;
 
+use cedar_policy::PolicySet;
 use pyo3::exceptions::{PyKeyError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
@@ -45,8 +46,11 @@ struct PythonBoxer {
 #[pymethods]
 impl PythonBoxer {
     #[new]
-    fn new() -> Self {
-        Self { inner: Boxer::new() }
+    fn new(policies: String) -> PyResult<Self> {
+        let policy_set = policies
+            .parse::<PolicySet>()
+            .map_err(|e| PyValueError::new_err(e.to_string()))?;
+        Ok(Self { inner: Boxer::new(policy_set) })
     }
 
     fn get_url_login(&self, _kwargs: &Bound<'_, PyDict>) -> String {
