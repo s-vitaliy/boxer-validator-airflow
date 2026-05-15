@@ -2,12 +2,12 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 
-#[cfg(test)]
-mod tests;
-
 pub const PRINCIPAL_KEY: &str = "boxer.sneaksanddata.com/principal";
 pub const USER_ID_KEY: &str = "boxer.sneaksanddata.com/external-identity";
 pub const IDENTITY_PROVIDER_KEY: &str = "boxer.sneaksanddata.com/identity-provider";
+
+#[cfg(test)]
+mod tests;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BoxerPrincipal {
