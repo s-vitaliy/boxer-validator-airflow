@@ -11,7 +11,7 @@ use pyo3::types::PyDict;
 use tokio::runtime::Handle;
 
 use crate::models::boxer_principal::BoxerPrincipal;
-use crate::models::entities::{action_entity_uid, AirflowEntity};
+use crate::models::entities::{AirflowEntity, action_entity_uid};
 use crate::services::validation_service::Boxer;
 
 /// A simple in-memory repository that holds a fixed [`PolicySet`].
@@ -67,7 +67,9 @@ impl PythonBoxer {
             .parse::<PolicySet>()
             .map_err(|e| PyValueError::new_err(e.to_string()))?;
         let repository = Arc::new(StaticPolicyRepository(policy_set));
-        Ok(Self { inner: Boxer::new(repository) })
+        Ok(Self {
+            inner: Boxer::new(repository),
+        })
     }
 
     fn get_url_login(&self, _kwargs: &Bound<'_, PyDict>) -> String {
@@ -79,7 +81,8 @@ impl PythonBoxer {
         menu_items: Vec<Py<PyAny>>,
         user_id: String,
     ) -> Vec<Py<PyAny>> {
-        self.inner.filter_authorized_menu_items(menu_items, &user_id)
+        self.inner
+            .filter_authorized_menu_items(menu_items, &user_id)
     }
 
     /// Check whether `user_id` is allowed to perform `method` on a resource of type `resource_type`.
@@ -103,8 +106,7 @@ impl PythonBoxer {
         let user = AirflowEntity::User.entity_uid(&user_id);
         let resource = resource_entity.entity_uid(entity_id.as_deref().unwrap_or(""));
 
-        let result = Handle::current()
-            .block_on(self.inner.is_authorized(user, action, resource));
+        let result = Handle::current().block_on(self.inner.is_authorized(user, action, resource));
 
         Ok(result)
     }
@@ -115,4 +117,3 @@ pub fn register(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PythonBoxer>()?;
     Ok(())
 }
-
