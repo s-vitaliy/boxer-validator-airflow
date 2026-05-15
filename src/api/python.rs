@@ -1,10 +1,12 @@
 use std::collections::HashMap;
+use std::str::FromStr;
 
-use pyo3::exceptions::PyKeyError;
+use pyo3::exceptions::{PyKeyError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
 use crate::models::boxer_principal::BoxerPrincipal;
+use crate::models::entities::{action_entity_uid, AirflowEntity};
 use crate::services::validation_service::Boxer;
 
 #[pyclass(name = "BoxerPrincipal")]
@@ -59,82 +61,28 @@ impl PythonBoxer {
         self.inner.filter_authorized_menu_items(menu_items, &user_id)
     }
 
-    fn is_authorized_asset(
+    /// Check whether `user_id` is allowed to perform `method` on a resource of type `resource_type`.
+    ///
+    /// - `method`: HTTP-style verb — `"GET"`, `"POST"`, `"PUT"`, `"DELETE"`.
+    ///   `"GET"` without `entity_id` is treated as `"LIST"`.
+    /// - `resource_type`: Cedar entity kind name — `"Dag"`, `"Variable"`, `"Custom"`, etc.
+    /// - `user_id`: opaque user identifier.
+    /// - `entity_id`: specific resource ID (optional); determines GET vs LIST and scopes the resource UID.
+    fn is_authorized(
         &self,
         method: String,
+        resource_type: String,
         user_id: String,
-        _details: Option<Py<PyAny>>,
-    ) -> bool {
-        self.inner.is_authorized_asset(&method, &user_id)
-    }
+        entity_id: Option<String>,
+    ) -> PyResult<bool> {
+        let resource_entity = AirflowEntity::from_str(&resource_type)
+            .map_err(|e| PyValueError::new_err(e.to_string()))?;
 
-    fn is_authorized_asset_alias(
-        &self,
-        method: String,
-        user_id: String,
-        _details: Option<Py<PyAny>>,
-    ) -> bool {
-        self.inner.is_authorized_asset_alias(&method, &user_id)
-    }
+        let action = action_entity_uid(&method, entity_id.as_deref());
+        let user = AirflowEntity::User.entity_uid(&user_id);
+        let resource = resource_entity.entity_uid(entity_id.as_deref().unwrap_or(""));
 
-    fn is_authorized_configuration(
-        &self,
-        method: String,
-        user_id: String,
-        _details: Option<Py<PyAny>>,
-    ) -> bool {
-        self.inner.is_authorized_configuration(&method, &user_id)
-    }
-
-    fn is_authorized_connection(
-        &self,
-        method: String,
-        user_id: String,
-        _details: Option<Py<PyAny>>,
-    ) -> bool {
-        self.inner.is_authorized_connection(&method, &user_id)
-    }
-
-    fn is_authorized_custom_view(
-        &self,
-        method: String,
-        resource_name: String,
-        user_id: String,
-    ) -> bool {
-        self.inner.is_authorized_custom_view(&method, &resource_name, &user_id)
-    }
-
-    fn is_authorized_dag(
-        &self,
-        method: String,
-        user_id: String,
-        _access_entity: Option<Py<PyAny>>,
-        _details: Option<Py<PyAny>>,
-    ) -> bool {
-        self.inner.is_authorized_dag(&method, &user_id)
-    }
-
-    fn is_authorized_pool(
-        &self,
-        method: String,
-        user_id: String,
-        _details: Option<Py<PyAny>>,
-    ) -> bool {
-        self.inner.is_authorized_pool(&method, &user_id)
-    }
-
-    fn is_authorized_variable(
-        &self,
-        method: String,
-        user_id: String,
-        _details: Option<Py<PyAny>>,
-    ) -> bool {
-        self.inner.is_authorized_variable(&method, &user_id)
-    }
-
-    fn is_authorized_view(&self, access_view: Py<PyAny>, user_id: String) -> bool {
-        let _ = access_view;
-        self.inner.is_authorized_view("", &user_id)
+        Ok(self.inner.is_authorized(action, user, resource))
     }
 }
 

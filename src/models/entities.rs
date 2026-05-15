@@ -1,4 +1,5 @@
 use cedar_policy::{EntityId, EntityTypeName, EntityUid};
+use std::fmt;
 use std::str::FromStr;
 
 const NAMESPACE: &str = "Airflow";
@@ -24,6 +25,42 @@ pub enum AirflowEntity {
     Team,
     Variable,
     View,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct UnknownEntity(String);
+
+impl fmt::Display for UnknownEntity {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "unknown Airflow entity: {}", self.0)
+    }
+}
+
+impl std::error::Error for UnknownEntity {}
+
+impl FromStr for AirflowEntity {
+    type Err = UnknownEntity;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "Action" => Ok(AirflowEntity::Action),
+            "Group" => Ok(AirflowEntity::Group),
+            "User" => Ok(AirflowEntity::User),
+            "Asset" => Ok(AirflowEntity::Asset),
+            "AssetAlias" => Ok(AirflowEntity::AssetAlias),
+            "Backfill" => Ok(AirflowEntity::Backfill),
+            "Configuration" => Ok(AirflowEntity::Configuration),
+            "Connection" => Ok(AirflowEntity::Connection),
+            "Custom" => Ok(AirflowEntity::Custom),
+            "Dag" => Ok(AirflowEntity::Dag),
+            "Menu" => Ok(AirflowEntity::Menu),
+            "Pool" => Ok(AirflowEntity::Pool),
+            "Team" => Ok(AirflowEntity::Team),
+            "Variable" => Ok(AirflowEntity::Variable),
+            "View" => Ok(AirflowEntity::View),
+            _ => Err(UnknownEntity(s.to_string())),
+        }
+    }
 }
 
 impl AirflowEntity {
@@ -53,6 +90,13 @@ impl AirflowEntity {
     pub fn entity_type(self) -> EntityTypeName {
         EntityTypeName::from_str(&format!("{}::{}", NAMESPACE, self.as_str()))
             .expect("statically constructed entity type name is always valid")
+    }
+
+    /// Returns an [`EntityUid`] for this entity kind with the given ID.
+    ///
+    /// Example: `Airflow::Dag::"my_dag"`, `Airflow::User::"alice"`.
+    pub fn entity_uid(self, id: &str) -> EntityUid {
+        EntityUid::from_type_name_and_id(self.entity_type(), EntityId::new(id))
     }
 }
 

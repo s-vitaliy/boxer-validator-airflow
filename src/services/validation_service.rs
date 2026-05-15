@@ -1,3 +1,5 @@
+use cedar_policy::EntityUid;
+
 pub struct Boxer;
 
 impl Boxer {
@@ -13,44 +15,7 @@ impl Boxer {
         Vec::new()
     }
 
-    pub fn is_authorized_asset(&self, _method: &str, _user_id: &str) -> bool {
-        false
-    }
-
-    pub fn is_authorized_asset_alias(&self, _method: &str, _user_id: &str) -> bool {
-        false
-    }
-
-    pub fn is_authorized_configuration(&self, _method: &str, _user_id: &str) -> bool {
-        false
-    }
-
-    pub fn is_authorized_connection(&self, _method: &str, _user_id: &str) -> bool {
-        false
-    }
-
-    pub fn is_authorized_custom_view(
-        &self,
-        _method: &str,
-        _resource_name: &str,
-        _user_id: &str,
-    ) -> bool {
-        false
-    }
-
-    pub fn is_authorized_dag(&self, _method: &str, _user_id: &str) -> bool {
-        false
-    }
-
-    pub fn is_authorized_pool(&self, _method: &str, _user_id: &str) -> bool {
-        false
-    }
-
-    pub fn is_authorized_variable(&self, _method: &str, _user_id: &str) -> bool {
-        false
-    }
-
-    pub fn is_authorized_view(&self, _access_view: &str, _user_id: &str) -> bool {
+    pub fn is_authorized(&self, _action: EntityUid, _user: EntityUid, _resource: EntityUid) -> bool {
         false
     }
 }
