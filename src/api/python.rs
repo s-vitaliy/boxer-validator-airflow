@@ -1,9 +1,10 @@
 use std::collections::HashMap;
+use std::env;
 use std::str::FromStr;
 use std::sync::Arc;
 
 use cedar_policy::PolicySet;
-use pyo3::exceptions::{PyKeyError, PyValueError};
+use pyo3::exceptions::{PyKeyError, PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use tokio::runtime::Handle;
@@ -41,6 +42,8 @@ impl PythonBoxerPrincipal {
     }
 }
 
+const POLICY_SET_ENV_VAR: &str = "PYTHON_BOXER_POLICY_SET";
+
 #[pyclass(name = "Boxer")]
 struct PythonBoxer {
     inner: Boxer,
@@ -49,7 +52,9 @@ struct PythonBoxer {
 #[pymethods]
 impl PythonBoxer {
     #[new]
-    fn new(policies: String) -> PyResult<Self> {
+    fn new() -> PyResult<Self> {
+        let policies = env::var(POLICY_SET_ENV_VAR)
+            .map_err(|_| PyRuntimeError::new_err(format!("environment variable {POLICY_SET_ENV_VAR} is not set")))?;
         let policy_set = policies
             .parse::<PolicySet>()
             .map_err(|e| PyValueError::new_err(e.to_string()))?;

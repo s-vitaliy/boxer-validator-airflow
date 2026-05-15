@@ -32,36 +32,39 @@ class BoxerAuthManager(BaseAuthManager[BoxerUser]):
     def is_authorized_asset(
         self, *, method: str, user: BoxerUser, details: Any | None = None
     ) -> bool:
-        return self.boxer.is_authorized_asset(
-            method=method, user_id=user.get_id(), details=details
+        return self.boxer.is_authorized(
+            method=method, resource_type="Asset", user_id=user.get_id()
         )
 
     def is_authorized_asset_alias(
         self, *, method: str, user: BoxerUser, details: Any | None = None
     ) -> bool:
-        return self.boxer.is_authorized_asset_alias(
-            method=method, user_id=user.get_id(), details=details
+        return self.boxer.is_authorized(
+            method=method, resource_type="AssetAlias", user_id=user.get_id()
         )
 
     def is_authorized_configuration(
         self, *, method: str, user: BoxerUser, details: Any | None = None
     ) -> bool:
-        return self.boxer.is_authorized_configuration(
-            method=method, user_id=user.get_id(), details=details
+        return self.boxer.is_authorized(
+            method=method, resource_type="Configuration", user_id=user.get_id()
         )
 
     def is_authorized_connection(
         self, *, method: str, user: BoxerUser, details: Any | None = None
     ) -> bool:
-        return self.boxer.is_authorized_connection(
-            method=method, user_id=user.get_id(), details=details
+        return self.boxer.is_authorized(
+            method=method, resource_type="Connection", user_id=user.get_id()
         )
 
     def is_authorized_custom_view(
         self, *, method: str, resource_name: str, user: BoxerUser
     ) -> bool:
-        return self.boxer.is_authorized_custom_view(
-            method=method, resource_name=resource_name, user_id=user.get_id()
+        return self.boxer.is_authorized(
+            method=method,
+            resource_type="Custom",
+            user_id=user.get_id(),
+            entity_id=resource_name,
         )
 
     def is_authorized_dag(
@@ -72,28 +75,25 @@ class BoxerAuthManager(BaseAuthManager[BoxerUser]):
         access_entity: Any | None = None,
         details: Any | None = None,
     ) -> bool:
-        return self.boxer.is_authorized_dag(
-            method=method,
-            user_id=user.get_id(),
-            access_entity=access_entity,
-            details=details,
+        return self.boxer.is_authorized(
+            method=method, resource_type="Dag", user_id=user.get_id()
         )
 
     def is_authorized_pool(
         self, *, method: str, user: BoxerUser, details: Any | None = None
     ) -> bool:
-        return self.boxer.is_authorized_pool(
-            method=method, user_id=user.get_id(), details=details
+        return self.boxer.is_authorized(
+            method=method, resource_type="Pool", user_id=user.get_id()
         )
 
     def is_authorized_variable(
         self, *, method: str, user: BoxerUser, details: Any | None = None
     ) -> bool:
-        return self.boxer.is_authorized_variable(
-            method=method, user_id=user.get_id(), details=details
+        return self.boxer.is_authorized(
+            method=method, resource_type="Variable", user_id=user.get_id()
         )
 
     def is_authorized_view(self, *, access_view: Any, user: BoxerUser) -> bool:
-        return self.boxer.is_authorized_view(
-            access_view=access_view, user_id=user.get_id()
+        return self.boxer.is_authorized(
+            method="GET", resource_type="View", user_id=user.get_id()
         )
