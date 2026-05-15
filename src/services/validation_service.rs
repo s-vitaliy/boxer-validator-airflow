@@ -1,14 +1,18 @@
+use boxer_core::services::base::upsert_repository::ReadOnlyRepository;
 use cedar_policy::{Authorizer, Context, Decision, Entities, EntityUid, PolicySet, Request};
+use std::sync::Arc;
+
+type PolicyRepository = dyn ReadOnlyRepository<(), PolicySet, ReadError = Box<dyn std::error::Error + Send + Sync>>;
 
 pub struct Boxer {
-    policies: PolicySet,
+    repository: Arc<PolicyRepository>,
     authorizer: Authorizer,
 }
 
 impl Boxer {
-    pub fn new(policies: PolicySet) -> Self {
+    pub fn new(repository: Arc<PolicyRepository>) -> Self {
         Self {
-            policies,
+            repository,
             authorizer: Authorizer::new(),
         }
     }
@@ -21,12 +25,22 @@ impl Boxer {
         Vec::new()
     }
 
-    pub fn is_authorized(&self, principal: EntityUid, action: EntityUid, resource: EntityUid) -> bool {
+    pub async fn is_authorized(
+        &self,
+        principal: EntityUid,
+        action: EntityUid,
+        resource: EntityUid,
+    ) -> bool {
+        let Ok(policies) = self.repository.get(()).await else {
+            return false;
+        };
         let Ok(request) = Request::new(principal, action, resource, Context::empty(), None) else {
             return false;
         };
         self.authorizer
-            .is_authorized(&request, &self.policies, &Entities::empty())
-            .decision() == Decision::Allow
+            .is_authorized(&request, &policies, &Entities::empty())
+            .decision()
+            == Decision::Allow
     }
 }
+
