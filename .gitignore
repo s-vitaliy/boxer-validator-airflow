@@ -51,3 +51,6 @@ ENV/
 
 # uv / pyenv
 .python-version
+
+# Test dependencies
+integration_tests/helm/setup/charts/*
