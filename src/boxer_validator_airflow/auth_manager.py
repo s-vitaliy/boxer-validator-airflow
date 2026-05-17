@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI
@@ -15,6 +16,7 @@ API_ROOT_PATH = "/"
 
 # Define the full path on which the potential auth manager fastapi is mounted
 AUTH_MANAGER_FASTAPI_APP_PREFIX = f"{API_ROOT_PATH}auth"
+LOGIN_PAGE_PATH = Path(__file__).parents[2] / "ui" / "dev" / "login.html"
 
 
 class BoxerAuthManager(BaseAuthManager[BoxerUser]):
@@ -128,13 +130,13 @@ class BoxerAuthManager(BaseAuthManager[BoxerUser]):
         This sub application, if specified, is mounted in the main FastAPI application.
         """
         from airflow.api_fastapi.auth.managers.simple.routes.login import login_router
-        from fastapi.responses import PlainTextResponse
+        from fastapi.responses import HTMLResponse
 
         app = FastAPI(title="Boxer auth manager sub application")
         app.include_router(login_router)
 
         @app.get("/{rest_of_path:path}", include_in_schema=False)
-        def webapp(rest_of_path: str) -> PlainTextResponse:
-            return PlainTextResponse("hello")
+        def webapp(rest_of_path: str) -> HTMLResponse:
+            return HTMLResponse(LOGIN_PAGE_PATH.read_text())
 
         return app

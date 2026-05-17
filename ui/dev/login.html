@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Boxer Login</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: Canvas;
+        color: CanvasText;
+      }
+
+      main {
+        width: min(420px, calc(100vw - 32px));
+      }
+
+      form {
+        display: grid;
+        gap: 12px;
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      input,
+      button,
+      pre {
+        font: inherit;
+      }
+
+      input {
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 40px;
+        border: 1px solid color-mix(in srgb, CanvasText 25%, Canvas);
+        border-radius: 6px;
+        padding: 8px 10px;
+        background: Canvas;
+        color: CanvasText;
+      }
+
+      button {
+        min-height: 40px;
+        border: 0;
+        border-radius: 6px;
+        padding: 8px 14px;
+        background: #1261a6;
+        color: white;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      button:disabled {
+        cursor: wait;
+        opacity: 0.7;
+      }
+
+      pre {
+        min-height: 48px;
+        margin: 16px 0 0;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <form id="login-form">
+        <label for="external-token">
+          external_token
+          <input
+            id="external-token"
+            name="external_token"
+            type="text"
+            autocomplete="off"
+            required
+          />
+        </label>
+        <button id="submit-button" type="submit">Login</button>
+      </form>
+      <pre id="result" aria-live="polite"></pre>
+    </main>
+
+    <script>
+      const AUTH_MANAGER_FASTAPI_APP_PREFIX = "/auth";
+      const loginUrl = `${AUTH_MANAGER_FASTAPI_APP_PREFIX}/boxer/login/token`;
+
+      const form = document.querySelector("#login-form");
+      const tokenInput = document.querySelector("#external-token");
+      const submitButton = document.querySelector("#submit-button");
+      const result = document.querySelector("#result");
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        submitButton.disabled = true;
+        result.textContent = "Sending request...";
+
+        try {
+          const response = await fetch(loginUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              external_token: tokenInput.value,
+            }),
+          });
+
+          const responseText = await response.text();
+          result.textContent = [
+            `POST ${loginUrl}`,
+            `Status: ${response.status} ${response.statusText}`,
+            responseText,
+          ]
+            .filter(Boolean)
+            .join("\n");
+        } catch (error) {
+          result.textContent = `Request failed: ${error}`;
+        } finally {
+          submitButton.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>
