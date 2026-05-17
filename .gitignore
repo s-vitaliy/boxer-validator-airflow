@@ -56,3 +56,10 @@ ENV/
 integration_tests/helm/setup/charts/*
 integration_tests/terraform/keycloak/terraform.tfstate*
 integration_tests/terraform/keycloak/.terraform*
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Zed editor
+.zed/

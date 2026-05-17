@@ -4,6 +4,7 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 use cedar_policy::PolicySet;
+use k8s_openapi::api::policy;
 use pyo3::exceptions::{PyKeyError, PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
@@ -53,11 +54,15 @@ struct PythonBoxer {
 impl PythonBoxer {
     #[new]
     fn new() -> PyResult<Self> {
-        let policies = env::var(POLICY_SET_ENV_VAR)
-            .map_err(|_| PyRuntimeError::new_err(format!("environment variable {POLICY_SET_ENV_VAR} is not set")))?;
-        let policy_set = policies
-            .parse::<PolicySet>()
-            .map_err(|e| PyValueError::new_err(e.to_string()))?;
+        // let policies = env::var(POLICY_SET_ENV_VAR).map_err(|_| {
+        //     PyRuntimeError::new_err(format!(
+        //         "environment variable {POLICY_SET_ENV_VAR} is not set"
+        //     ))
+        // })?;
+        // let policy_set = policies
+        //     .parse::<PolicySet>()
+        //     .map_err(|e| PyValueError::new_err(e.to_string()))?;
+        let policy_set = PolicySet::default();
         let repository = Arc::new(StaticPolicyRepository::new(policy_set));
         Ok(Self {
             inner: Boxer::new(repository),
