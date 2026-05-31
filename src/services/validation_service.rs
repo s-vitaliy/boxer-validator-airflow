@@ -25,7 +25,7 @@ impl Boxer {
         String::new()
     }
 
-    pub fn create_token(&self, _external_token: &str) -> String {
+    pub async fn create_token(&self, _external_token: &str) -> String {
         "token".to_string()
     }
 

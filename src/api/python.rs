@@ -47,7 +47,7 @@ const POLICY_SET_ENV_VAR: &str = "PYTHON_BOXER_POLICY_SET";
 
 #[pyclass(name = "Boxer")]
 struct PythonBoxer {
-    inner: Boxer,
+    inner: Arc<Boxer>,
 }
 
 #[pymethods]
@@ -65,7 +65,7 @@ impl PythonBoxer {
         let policy_set = PolicySet::default();
         let repository = Arc::new(StaticPolicyRepository::new(policy_set));
         Ok(Self {
-            inner: Boxer::new(repository),
+            inner: Arc::new(Boxer::new(repository)),
         })
     }
 
@@ -73,8 +73,15 @@ impl PythonBoxer {
         self.inner.get_url_login()
     }
 
-    fn create_token(&self, external_token: String) -> String {
-        self.inner.create_token(&external_token)
+    fn create_token<'py>(
+        &self,
+        py: Python<'py>,
+        external_token: String,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let inner = Arc::clone(&self.inner);
+        pyo3_async_runtimes::tokio::future_into_py(py, async move {
+            Ok(inner.create_token(&external_token).await)
+        })
     }
 
     fn filter_authorized_menu_items(

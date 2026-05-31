@@ -21,9 +21,9 @@ login_router = APIRouter(tags=["BoxerAuthManagerLogin"])
     "/boxer/login/token",
     status_code=status.HTTP_201_CREATED,
 )
-def create_token(body: LoginBody, request: Request) -> JSONResponse:
+async def create_token(body: LoginBody, request: Request) -> JSONResponse:
     """Set the Airflow cookie for an external token."""
-    token = Boxer().create_token(body.external_token)
+    token = await Boxer().create_token(body.external_token)
     secure = request.base_url.scheme == "https" or bool(
         conf.get("api", "ssl_cert", fallback="")
     )

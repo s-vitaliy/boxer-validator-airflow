@@ -18,8 +18,8 @@ class Boxer:
     def get_url_login(self, **kwargs: Any) -> str:
         return self._inner.get_url_login(kwargs)
 
-    def create_token(self, external_token: str) -> str:
-        return self._inner.create_token(external_token)
+    async def create_token(self, external_token: str) -> str:
+        return await self._inner.create_token(external_token)
 
     def filter_authorized_menu_items(
         self, menu_items: list[Any], *, user_id: str
