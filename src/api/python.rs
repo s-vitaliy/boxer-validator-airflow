@@ -73,6 +73,10 @@ impl PythonBoxer {
         self.inner.get_url_login()
     }
 
+    fn create_token(&self, external_token: String) -> String {
+        self.inner.create_token(&external_token)
+    }
+
     fn filter_authorized_menu_items(
         &self,
         menu_items: Vec<Py<PyAny>>,

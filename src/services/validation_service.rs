@@ -2,7 +2,11 @@ use boxer_core::services::base::upsert_repository::ReadOnlyRepository;
 use cedar_policy::{Authorizer, Context, Decision, Entities, EntityUid, PolicySet, Request};
 use std::sync::Arc;
 
-type PolicyRepository = dyn ReadOnlyRepository<(), PolicySet, ReadError = Box<dyn std::error::Error + Send + Sync>>;
+#[cfg(test)]
+mod tests;
+
+type PolicyRepository =
+    dyn ReadOnlyRepository<(), PolicySet, ReadError = Box<dyn std::error::Error + Send + Sync>>;
 
 pub struct Boxer {
     repository: Arc<PolicyRepository>,
@@ -19,6 +23,10 @@ impl Boxer {
 
     pub fn get_url_login(&self) -> String {
         String::new()
+    }
+
+    pub fn create_token(&self, _external_token: &str) -> String {
+        "token".to_string()
     }
 
     pub fn filter_authorized_menu_items<T>(&self, _menu_items: Vec<T>, _user_id: &str) -> Vec<T> {
@@ -43,4 +51,3 @@ impl Boxer {
             == Decision::Allow
     }
 }
-

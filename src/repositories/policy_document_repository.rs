@@ -42,9 +42,9 @@ impl UpsertRepositoryWithDelete<String, PolicyDocumentData>
 }
 
 pub type PolicyDocumentRepository = dyn UpsertRepositoryWithDelete<
-    String,
-    PolicyDocumentData,
-    DeleteError = Status,
-    Error = Status,
-    ReadError = Status,
->;
+        String,
+        PolicyDocumentData,
+        DeleteError = Status,
+        Error = Status,
+        ReadError = Status,
+    >;
