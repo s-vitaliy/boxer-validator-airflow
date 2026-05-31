@@ -129,8 +129,9 @@ class BoxerAuthManager(BaseAuthManager[BoxerUser]):
 
         This sub application, if specified, is mounted in the main FastAPI application.
         """
-        from airflow.api_fastapi.auth.managers.simple.routes.login import login_router
         from fastapi.responses import HTMLResponse
+
+        from boxer_validator_airflow.routes.login import login_router
 
         app = FastAPI(title="Boxer auth manager sub application")
         app.include_router(login_router)
