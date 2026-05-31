@@ -100,6 +100,7 @@
     <script>
       const AUTH_MANAGER_FASTAPI_APP_PREFIX = "/auth";
       const loginUrl = `${AUTH_MANAGER_FASTAPI_APP_PREFIX}/boxer/login/token`;
+      const nextUrl = new URLSearchParams(window.location.search).get("next");
 
       const form = document.querySelector("#login-form");
       const tokenInput = document.querySelector("#external-token");
@@ -124,6 +125,11 @@
           });
 
           const responseText = await response.text();
+          if (response.status === 201 && nextUrl) {
+            window.location.assign(nextUrl);
+            return;
+          }
+
           result.textContent = [
             `POST ${loginUrl}`,
             `Status: ${response.status} ${response.statusText}`,
