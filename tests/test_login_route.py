@@ -4,7 +4,12 @@ from fastapi.testclient import TestClient
 from boxer_validator_airflow.routes.login import login_router
 
 
-def test_create_token_sets_airflow_cookie() -> None:
+def test_create_token_sets_airflow_cookie(monkeypatch) -> None:
+    async def create_token(_self, _external_token: str) -> str:
+        return "token"
+
+    monkeypatch.setattr("boxer_validator_airflow.routes.login.Boxer.create_token", create_token)
+
     app = FastAPI()
     app.include_router(login_router)
 

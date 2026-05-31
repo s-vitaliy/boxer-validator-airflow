@@ -80,7 +80,10 @@ impl PythonBoxer {
     ) -> PyResult<Bound<'py, PyAny>> {
         let inner = Arc::clone(&self.inner);
         pyo3_async_runtimes::tokio::future_into_py(py, async move {
-            Ok(inner.create_token(&external_token).await)
+            inner
+                .create_token(&external_token)
+                .await
+                .map_err(|error| PyRuntimeError::new_err(error.to_string()))
         })
     }
 
