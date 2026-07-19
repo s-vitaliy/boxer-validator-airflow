@@ -16,3 +16,6 @@ uv run python -c "from boxer_validator_airflow import BoxerAuthManager; print(Bo
 
 `IDENTITY_PROVIDER` selects the Boxer issuer identity provider. It defaults to
 `keycloak`.
+
+`BOXER_ISSUER_JWE_KEY` is the MVP symmetric JWE key used to decrypt the token
+returned by Boxer issuer. The value is used as UTF-8 bytes.

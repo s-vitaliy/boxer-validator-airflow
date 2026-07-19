@@ -447,6 +447,7 @@ dependencies = [
  "async-trait",
  "boxer_core",
  "cedar-policy",
+ "josekit",
  "k8s-openapi",
  "kube",
  "maplit",

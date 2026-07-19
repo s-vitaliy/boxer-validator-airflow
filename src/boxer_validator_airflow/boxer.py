@@ -13,12 +13,13 @@ class Boxer:
         return user.serialize_user()
 
     def deserialize_user(self, token: dict[str, Any]) -> Any:
-        return _core.BoxerPrincipal.deserialize_user(token)
+        normalized_token = {str(key): str(value) for key, value in token.items()}
+        return _core.BoxerPrincipal.deserialize_user(normalized_token)
 
     def get_url_login(self, **kwargs: Any) -> str:
         return self._inner.get_url_login(kwargs)
 
-    async def create_token(self, external_token: str) -> str:
+    async def create_token(self, external_token: str) -> dict[str, str]:
         return await self._inner.create_token(external_token)
 
     def filter_authorized_menu_items(

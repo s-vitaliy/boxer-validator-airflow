@@ -1,5 +1,9 @@
 use boxer_core::services::base::upsert_repository::ReadOnlyRepository;
 use cedar_policy::{Authorizer, Context, Decision, Entities, EntityUid, PolicySet, Request};
+use josekit::Value;
+use josekit::jwe::Dir;
+use josekit::jwt;
+use std::collections::HashMap;
 use std::env;
 use std::sync::Arc;
 
@@ -15,6 +19,7 @@ const BOXER_ISSUER_BASE_URL_ENV_VAR: &str = "BOXER_ISSUER_BASE_URL";
 const DEFAULT_BOXER_ISSUER_BASE_URL: &str = "http://localhost:5555/issuer/";
 const IDENTITY_PROVIDER_ENV_VAR: &str = "IDENTITY_PROVIDER";
 const DEFAULT_IDENTITY_PROVIDER: &str = "keycloak";
+const BOXER_ISSUER_JWE_KEY_ENV_VAR: &str = "BOXER_ISSUER_JWE_KEY";
 
 pub struct Boxer {
     repository: Arc<PolicyRepository>,
@@ -42,14 +47,30 @@ impl Boxer {
         String::new()
     }
 
-    pub async fn create_token(&self, external_token: &str) -> Result<String, TokenIssuerError> {
+    pub async fn create_token(
+        &self,
+        external_token: &str,
+    ) -> Result<HashMap<String, String>, TokenIssuerError> {
+        let jwe_key = env::var(BOXER_ISSUER_JWE_KEY_ENV_VAR)?;
+        self.create_token_with_jwe_key(external_token, jwe_key.as_bytes())
+            .await
+    }
+
+    async fn create_token_with_jwe_key(
+        &self,
+        external_token: &str,
+        jwe_key: &[u8],
+    ) -> Result<HashMap<String, String>, TokenIssuerError> {
         let base_url = env::var(BOXER_ISSUER_BASE_URL_ENV_VAR)
             .unwrap_or_else(|_| DEFAULT_BOXER_ISSUER_BASE_URL.to_string());
         let identity_provider = env::var(IDENTITY_PROVIDER_ENV_VAR)
             .unwrap_or_else(|_| DEFAULT_IDENTITY_PROVIDER.to_string());
-        self.token_issuer
+        let issuer_jwe = self
+            .token_issuer
             .create_token(external_token, &base_url, &identity_provider)
-            .await
+            .await?;
+
+        decrypt_issuer_jwe(&issuer_jwe, jwe_key)
     }
 
     pub fn filter_authorized_menu_items<T>(&self, _menu_items: Vec<T>, _user_id: &str) -> Vec<T> {
@@ -73,4 +94,24 @@ impl Boxer {
             .decision()
             == Decision::Allow
     }
+}
+
+fn decrypt_issuer_jwe(
+    issuer_jwe: &str,
+    jwe_key: &[u8],
+) -> Result<HashMap<String, String>, TokenIssuerError> {
+    let decrypter = Dir.decrypter_from_bytes(jwe_key)?;
+    let (payload, _) = jwt::decode_with_decrypter(issuer_jwe, &decrypter)?;
+
+    payload
+        .claims_set()
+        .iter()
+        .map(|(key, value)| {
+            let normalized = match value {
+                Value::String(value) => value.clone(),
+                _ => value.to_string(),
+            };
+            Ok((key.clone(), normalized))
+        })
+        .collect()
 }

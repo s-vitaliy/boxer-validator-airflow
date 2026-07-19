@@ -4,10 +4,11 @@ from fastapi import APIRouter, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from airflow.api_fastapi.app import get_cookie_path
+from airflow.api_fastapi.app import get_auth_manager, get_cookie_path
 from airflow.api_fastapi.auth.managers.base_auth_manager import COOKIE_NAME_JWT_TOKEN
 from airflow.configuration import conf
 from boxer_validator_airflow.boxer import Boxer
+from boxer_validator_airflow.user import BoxerUser
 
 
 class LoginBody(BaseModel):
@@ -23,7 +24,9 @@ login_router = APIRouter(tags=["BoxerAuthManagerLogin"])
 )
 async def create_token(body: LoginBody, request: Request) -> JSONResponse:
     """Set the Airflow cookie for an external token."""
-    token = await Boxer().create_token(body.external_token)
+    claims = await Boxer().create_token(body.external_token)
+    user = BoxerUser.deserialize_user(claims)
+    token = get_auth_manager().generate_jwt(user=user)
     secure = request.base_url.scheme == "https" or bool(
         conf.get("api", "ssl_cert", fallback="")
     )
